@@ -293,7 +293,7 @@ def download_rosenka_pdf(
     oaza: str = "",
     nendo: str = "r07",
     output_dir: str = "rosenka_pdfs",
-) -> str:
+) -> list[str]:
     """
     国税庁サイトから路線価図PDFをダウンロードして保存する。
 
@@ -308,7 +308,7 @@ def download_rosenka_pdf(
         output_dir: 保存先ディレクトリ
 
     Returns:
-        保存したPDFのファイルパス
+        保存したPDFのファイルパスのリスト（大字に複数の図番がある場合は複数）
     """
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
@@ -336,16 +336,19 @@ def download_rosenka_pdf(
     if not zuhan_htm_urls:
         raise ValueError(f"図番HTMリンクが見つかりません: {city_index_url}")
 
-    # 最初の図番HTMからPDFリンクを取得
-    pdf_url = _get_rosenka_pdf_url(zuhan_htm_urls[0])
-
-    resp = _get(pdf_url)
     oaza_part = f"_{_normalize_oaza(oaza)}" if oaza else ""
-    filename = f"{nendo}_{pref}_{city}{oaza_part}_rosenka.pdf"
-    output_path = Path(output_dir) / filename
-    output_path.write_bytes(resp.content)
+    saved_paths = []
+    for zuhan_htm_url in zuhan_htm_urls:
+        m = re.search(r"html/(\d+)f\.htm", zuhan_htm_url)
+        zuhan_no = f"_{m.group(1)}" if m else f"_{len(saved_paths) + 1}"
+        pdf_url = _get_rosenka_pdf_url(zuhan_htm_url)
+        resp = _get(pdf_url)
+        filename = f"{nendo}_{pref}_{city}{oaza_part}{zuhan_no}_rosenka.pdf"
+        output_path = Path(output_dir) / filename
+        output_path.write_bytes(resp.content)
+        saved_paths.append(str(output_path))
 
-    return str(output_path)
+    return saved_paths
 
 
 # ===========================================================

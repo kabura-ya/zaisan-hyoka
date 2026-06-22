@@ -137,9 +137,10 @@ def fetch_pdf_for_land(
             return "キャッシュ済み(路線価)", downloaded[cache_key_rosenka]
 
         try:
-            path = download_rosenka_pdf(pref, city, oaza, nendo, rosenka_dir)
-            downloaded[cache_key_rosenka] = path
-            return "成功(路線価)", path
+            paths = download_rosenka_pdf(pref, city, oaza, nendo, rosenka_dir)
+            downloaded[cache_key_rosenka] = "; ".join(paths)
+            label = f"成功(路線価 {len(paths)}枚)" if len(paths) > 1 else "成功(路線価)"
+            return label, "; ".join(paths)
         except Exception as e:
             print(f"    路線価図取得失敗（倍率表へ切替）: {e}")
 
