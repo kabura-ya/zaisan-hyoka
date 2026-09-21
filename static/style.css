@@ -1,0 +1,132 @@
+:root {
+  --brand-blue: #004EAE;
+  --text: #545454;
+  --border: #e0e0e0;
+  --bg: #f7f8fa;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: "Yu Gothic", "游ゴシック", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+  padding: 40px 20px;
+}
+
+main {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+h1 {
+  color: var(--brand-blue);
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  color: #888;
+  margin-top: 0;
+  margin-bottom: 24px;
+}
+
+.card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+h2 {
+  font-size: 17px;
+  color: var(--brand-blue);
+  margin-top: 0;
+}
+
+.hint {
+  font-size: 12px;
+  color: #888;
+  margin-top: 12px;
+  margin-bottom: 0;
+}
+
+.field {
+  margin-bottom: 16px;
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+button {
+  background: var(--brand-blue);
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 4px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error {
+  color: #c0392b;
+  border-color: #c0392b;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+th, td {
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  text-align: left;
+}
+
+th {
+  background: var(--bg);
+}
+
+.note h3 {
+  margin-top: 0;
+  font-size: 15px;
+}
+
+.note ul {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 13px;
+  color: #777;
+}
+
+.note code {
+  background: #f0f0f0;
+  padding: 1px 4px;
+  border-radius: 3px;
+}

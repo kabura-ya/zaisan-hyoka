@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>財産評価PDF一括取得ツール</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main>
+    <h1>財産評価PDF一括取得ツール</h1>
+    <p class="subtitle">課税明細書CSVから、路線価図・倍率表PDFをまとめて取得します</p>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="card error">
+          {% for message in messages %}
+            <p>{{ message }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <div class="card">
+      <h2>CSVをアップロード</h2>
+      <form method="post" action="{{ url_for('run') }}" enctype="multipart/form-data" id="run-form">
+        <div class="field">
+          <label for="csv_file">課税明細書CSV</label>
+          <input type="file" id="csv_file" name="csv_file" accept=".csv" required>
+        </div>
+        <div class="field">
+          <label for="nendo">年分（例: r07 = 令和7年）</label>
+          <input type="text" id="nendo" name="nendo" placeholder="省略時はCSVの年分列を使用">
+        </div>
+        <button type="submit">PDFを取得する</button>
+        <p class="hint" id="loading-hint" style="display:none;">
+          処理中です。1筆あたり約1〜2秒かかります（最大{{ max_rows }}筆でおよそ1分程度）。画面を閉じずにお待ちください。
+        </p>
+      </form>
+    </div>
+
+    <div class="card note">
+      <h3>CSVフォーマット</h3>
+      <table>
+        <thead>
+          <tr><th>列</th><th>説明</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>年分</td><td>相続開始年分（<code>r07</code> = 令和7年）。省略時はデフォルト値を使用</td></tr>
+          <tr><td>所在地</td><td>都道府県から始まる完全な地番</td></tr>
+          <tr><td>地目</td><td>宅地・田・畑・山林・原野・雑種地など</td></tr>
+          <tr><td>地積</td><td>面積（㎡）</td></tr>
+          <tr><td>固定資産税評価額</td><td>数値のみ（カンマ不要）</td></tr>
+        </tbody>
+      </table>
+      <ul>
+        <li>1回のアップロードで処理できるのは最大{{ max_rows }}筆までです</li>
+        <li>宅地は路線価図を優先し、路線価地域でない場合は倍率表に自動フォールバックします</li>
+        <li>倍率表PDFは画像PDFのため、倍率の読み取りは目視で行ってください</li>
+        <li>ダウンロードされるZIPには <code>rosenka/</code>・<code>bairitu/</code>・<code>result.csv</code>（取得結果一覧）が含まれます</li>
+      </ul>
+    </div>
+  </main>
+
+  <script>
+    document.getElementById("run-form").addEventListener("submit", function () {
+      document.getElementById("loading-hint").style.display = "block";
+      this.querySelector("button").disabled = true;
+    });
+  </script>
+</body>
+</html>

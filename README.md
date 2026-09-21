@@ -70,6 +70,30 @@ output/
   result.csv      ← 取得結果一覧
 ```
 
+## Web版（ローカル起動）
+
+CSVをブラウザからアップロードして、路線価図・倍率表PDFをZIPでダウンロードできます。
+
+```bash
+python app.py
+```
+
+`http://127.0.0.1:5000` を開き、課税明細書CSVをアップロードすると、
+`rosenka/`・`bairitu/`・`result.csv` を含むZIPファイルがダウンロードされます。
+
+- 1回のアップロードで処理できるのは最大30筆まで（`app.py` の `MAX_ROWS` で変更可能）
+- 国税庁サイトへの負荷対策のため、筆数が多い場合はCSVを分割してください
+
+## Render へのデプロイ
+
+本番運用は [Render](https://render.com) を想定している（`Procfile` で `gunicorn` を起動）。
+
+1. Renderで「New +」→「Web Service」を選び、このリポジトリ（GitHub: `kabura-ya/zaisan-hyoka`）を接続する
+2. Environment を「Python 3」に設定（Build Command: `pip install -r requirements.txt`／Start Command は `Procfile` から自動検出）
+3. 環境変数 `SECRET_KEY` にランダムな文字列を設定する（Flaskのセッション署名用。未設定時は開発用固定値にフォールバックするため必ず設定すること）
+4. 無料インスタンスの場合、一定時間アクセスがないとスリープし、次回アクセス時に起動まで数十秒かかる点に注意
+5. `Procfile` は `gunicorn app:app --timeout 300` を指定済み（1件あたり数秒かかる処理を最大30件連続実行するため、デフォルトの30秒タイムアウトでは不足するケースがある）
+
 ## scraper.py の単体利用
 
 ```bash
