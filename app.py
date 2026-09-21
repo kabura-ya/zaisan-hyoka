@@ -13,7 +13,7 @@ import tempfile
 import zipfile
 from pathlib import Path
 
-from flask import Flask, flash, redirect, render_template, request, send_file, url_for
+from flask import Flask, jsonify, render_template, request, send_file
 
 from pipeline import run_pipeline
 
@@ -35,12 +35,10 @@ def run():
     nendo = request.form.get("nendo", "").strip() or "r07"
 
     if not file or file.filename == "":
-        flash("CSVファイルを選択してください。")
-        return redirect(url_for("index"))
+        return jsonify(error="CSVファイルを選択してください。"), 400
 
     if not file.filename.lower().endswith(".csv"):
-        flash("CSVファイルを指定してください。")
-        return redirect(url_for("index"))
+        return jsonify(error="CSVファイルを指定してください。"), 400
 
     with tempfile.TemporaryDirectory() as work_dir:
         work_path = Path(work_dir)
@@ -51,27 +49,25 @@ def run():
             with csv_path.open(encoding="utf-8") as f:
                 rows = list(csv.DictReader(f))
         except UnicodeDecodeError:
-            flash("CSVの文字コードはUTF-8で保存してください。")
-            return redirect(url_for("index"))
+            return jsonify(error="CSVの文字コードはUTF-8で保存してください。"), 400
 
         if not rows:
-            flash("CSVにデータ行がありません。")
-            return redirect(url_for("index"))
+            return jsonify(error="CSVにデータ行がありません。"), 400
 
         if len(rows) > MAX_ROWS:
-            flash(
-                f"1回のアップロードで処理できるのは{MAX_ROWS}筆までです"
-                f"（{len(rows)}筆が指定されました）。ファイルを分割してください。"
-            )
-            return redirect(url_for("index"))
+            return jsonify(
+                error=(
+                    f"1回のアップロードで処理できるのは{MAX_ROWS}筆までです"
+                    f"（{len(rows)}筆が指定されました）。ファイルを分割してください。"
+                )
+            ), 400
 
         output_dir = work_path / "output"
 
         try:
             run_pipeline(str(csv_path), nendo, str(output_dir))
         except Exception as e:
-            flash(f"処理中にエラーが発生しました: {e}")
-            return redirect(url_for("index"))
+            return jsonify(error=f"処理中にエラーが発生しました: {e}"), 500
 
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:

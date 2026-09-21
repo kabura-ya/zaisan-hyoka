@@ -20,6 +20,15 @@ main {
   margin: 0 auto;
 }
 
+.brand-header {
+  margin-bottom: 24px;
+}
+
+.brand-logo {
+  height: 40px;
+  width: auto;
+}
+
 h1 {
   color: var(--brand-blue);
   margin-bottom: 4px;
@@ -94,6 +103,49 @@ button:disabled {
 .error {
   color: #c0392b;
   border-color: #c0392b;
+}
+
+.cta-card {
+  background: #eef4fb;
+  border-color: var(--brand-blue);
+}
+
+.cta-card p {
+  margin-top: 0;
+  font-size: 14px;
+}
+
+.cta-links {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cta-links a {
+  display: inline-block;
+  padding: 8px 16px;
+  border: 1px solid var(--brand-blue);
+  border-radius: 4px;
+  color: var(--brand-blue);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.cta-links a:hover {
+  background: var(--brand-blue);
+  color: white;
+}
+
+.done {
+  border-color: #2e7d32;
+}
+
+.done h2 {
+  color: #2e7d32;
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
 }
 
 table {

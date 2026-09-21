@@ -2,27 +2,35 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>財産評価PDF一括取得ツール</title>
+  <title>財産評価PDF一括取得ツール | かぶらや</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
   <main>
+    <header class="brand-header">
+      <img src="{{ url_for('static', filename='kaburaya_logo.png') }}" alt="かぶらや" class="brand-logo">
+    </header>
+
     <h1>財産評価PDF一括取得ツール</h1>
     <p class="subtitle">課税明細書CSVから、路線価図・倍率表PDFをまとめて取得します</p>
 
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <div class="card error">
-          {% for message in messages %}
-            <p>{{ message }}</p>
-          {% endfor %}
-        </div>
-      {% endif %}
-    {% endwith %}
+    <div class="card cta-card">
+      <p>
+        本ツールは、相続・事業承継における意思決定支援SaaSを開発する<strong>株式会社かぶらや</strong>が
+        無料で提供しています。土地評価の次に必要になる相続税試算・法人化シミュレーションや
+        非上場株式の評価も、あわせてご検討ください。
+      </p>
+      <div class="cta-links">
+        <a href="https://kabura-ya.co.jp/lp_shoukei/" target="_blank" rel="noopener">事業承継シミュレーションを見る</a>
+        <a href="https://kabura-ya.co.jp/lp_kabuka/" target="_blank" rel="noopener">株価算定システムを見る</a>
+      </div>
+    </div>
+
+    <div id="error-box" class="card error" style="display:none;"></div>
 
     <div class="card">
       <h2>CSVをアップロード</h2>
-      <form method="post" action="{{ url_for('run') }}" enctype="multipart/form-data" id="run-form">
+      <form id="run-form">
         <div class="field">
           <label for="csv_file">課税明細書CSV</label>
           <input type="file" id="csv_file" name="csv_file" accept=".csv" required>
@@ -31,11 +39,24 @@
           <label for="nendo">年分（例: r07 = 令和7年）</label>
           <input type="text" id="nendo" name="nendo" placeholder="省略時はCSVの年分列を使用">
         </div>
-        <button type="submit">PDFを取得する</button>
+        <button type="submit" id="submit-button">PDFを取得する</button>
         <p class="hint" id="loading-hint" style="display:none;">
           処理中です。1筆あたり約1〜2秒かかります（最大{{ max_rows }}筆でおよそ1分程度）。画面を閉じずにお待ちください。
         </p>
       </form>
+    </div>
+
+    <div id="done-box" class="card done" style="display:none;">
+      <h2>ダウンロードが完了しました</h2>
+      <p>お使いのブラウザのダウンロードフォルダに <code>zaisan-hyoka_result.zip</code> が保存されました。</p>
+      <p>
+        相続税申告に関わるその他の判断業務（法人化・事業承継シミュレーション、非上場株式の評価）も
+        かぶらやのSaaSで自動化できます。
+      </p>
+      <div class="cta-links">
+        <a href="https://kabura-ya.co.jp/lp_shoukei/" target="_blank" rel="noopener">事業承継シミュレーションを見る</a>
+        <a href="https://kabura-ya.co.jp/lp_kabuka/" target="_blank" rel="noopener">株価算定システムを見る</a>
+      </div>
     </div>
 
     <div class="card note">
@@ -62,9 +83,55 @@
   </main>
 
   <script>
-    document.getElementById("run-form").addEventListener("submit", function () {
-      document.getElementById("loading-hint").style.display = "block";
-      this.querySelector("button").disabled = true;
+    const form = document.getElementById("run-form");
+    const button = document.getElementById("submit-button");
+    const loadingHint = document.getElementById("loading-hint");
+    const errorBox = document.getElementById("error-box");
+    const doneBox = document.getElementById("done-box");
+
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      button.disabled = true;
+      loadingHint.style.display = "block";
+      errorBox.style.display = "none";
+      doneBox.style.display = "none";
+
+      const formData = new FormData(form);
+
+      try {
+        const resp = await fetch("/run", { method: "POST", body: formData });
+        const contentType = resp.headers.get("Content-Type") || "";
+
+        if (resp.ok && contentType.includes("application/zip")) {
+          const blob = await resp.blob();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "zaisan-hyoka_result.zip";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+
+          doneBox.style.display = "block";
+          doneBox.scrollIntoView({ behavior: "smooth", block: "start" });
+        } else {
+          let message = "処理中にエラーが発生しました。もう一度お試しください。";
+          try {
+            const data = await resp.json();
+            if (data && data.error) message = data.error;
+          } catch (_) { /* JSON以外の応答は既定メッセージのまま */ }
+          errorBox.textContent = message;
+          errorBox.style.display = "block";
+        }
+      } catch (err) {
+        errorBox.textContent = "通信エラーが発生しました。ネットワーク状態を確認してもう一度お試しください。";
+        errorBox.style.display = "block";
+      } finally {
+        loadingHint.style.display = "none";
+        button.disabled = false;
+      }
     });
   </script>
 </body>
