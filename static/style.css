@@ -148,14 +148,6 @@ button:disabled {
   margin-top: 0;
 }
 
-html.is-embed .embed-hide {
-  display: none !important;
-}
-
-html.is-embed body {
-  padding-top: 20px;
-}
-
 table {
   width: 100%;
   border-collapse: collapse;
