@@ -20,15 +20,6 @@ main {
   margin: 0 auto;
 }
 
-.brand-header {
-  margin-bottom: 24px;
-}
-
-.brand-logo {
-  height: 40px;
-  width: auto;
-}
-
 h1 {
   color: var(--brand-blue);
   margin-bottom: 4px;
