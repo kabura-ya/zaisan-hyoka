@@ -165,20 +165,22 @@ def run_pipeline(
     input_path: str,
     nendo: str = "r07",
     pdf_dir: str = "output",
+    force_nendo: bool = False,
 ) -> None:
     """
     課税明細書CSVを読み込み、路線価図/倍率表PDFを一括ダウンロードする。
 
     Args:
-        input_path: 課税明細書CSVのパス
-        nendo     : 相続開始年分（例: "r07" = 令和7年）。CSVの年分列が優先される。
-        pdf_dir   : PDF保存先ディレクトリ
+        input_path : 課税明細書CSVのパス
+        nendo      : 相続開始年分（例: "r07" = 令和7年）。force_nendo=False の場合、CSVの年分列が優先される。
+        pdf_dir    : PDF保存先ディレクトリ
+        force_nendo: True の場合、CSVの年分列を無視して nendo を使う（Web版で、画面で選んだ年分を優先するため）
     """
     if not input_path.lower().endswith(".csv"):
         raise ValueError(f"CSVファイルを指定してください: {input_path}")
 
     csv_nendo, lands = load_csv(input_path)
-    nendo = csv_nendo or nendo
+    nendo = nendo if force_nendo else (csv_nendo or nendo)
     print(f"CSV読み込み完了: {len(lands)}筆（年分: {nendo}）\n")
 
     Path(pdf_dir).mkdir(parents=True, exist_ok=True)

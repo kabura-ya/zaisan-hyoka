@@ -32,8 +32,13 @@
           <input type="file" id="csv_file" name="csv_file" accept=".csv" required>
         </div>
         <div class="field">
-          <label for="nendo">年分（例: r07 = 令和7年）</label>
-          <input type="text" id="nendo" name="nendo" placeholder="省略時はCSVの年分列を使用">
+          <label for="nendo">年分（相続開始の年）</label>
+          <select id="nendo" name="nendo" required>
+            {% for code, label in nendo_options %}
+            <option value="{{ code }}"{% if loop.first %} selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          <p class="hint">相続税の路線価は、毎年7月に公表されます。CSVに年分の列があっても、ここで選んだ年分が優先されます。</p>
         </div>
         <button type="submit" id="submit-button">PDFを取得する</button>
         <p class="hint" id="loading-hint" style="display:none;">
@@ -45,6 +50,7 @@
     <div id="done-box" class="card done" style="display:none;">
       <h2>ダウンロードが完了しました</h2>
       <p>お使いのブラウザのダウンロードフォルダに <code>zaisan-hyoka_result.zip</code> が保存されました。</p>
+      <p>取得した年分：<strong id="done-nendo"></strong></p>
       <p>
         相続税申告に関わるその他の判断業務（法人化・事業承継シミュレーション、非上場株式の評価）も
         かぶらやのSaaSで自動化できます。
@@ -62,7 +68,7 @@
           <tr><th>列</th><th>説明</th></tr>
         </thead>
         <tbody>
-          <tr><td>年分</td><td>相続開始年分（<code>r07</code> = 令和7年）。省略時はデフォルト値を使用</td></tr>
+          <tr><td>年分</td><td>省略できます。画面で選んだ年分が優先されます</td></tr>
           <tr><td>所在地</td><td>都道府県から始まる完全な地番</td></tr>
           <tr><td>地目</td><td>宅地・田・畑・山林・原野・雑種地など</td></tr>
           <tr><td>地積</td><td>面積（㎡）</td></tr>
@@ -110,6 +116,9 @@
           a.remove();
           URL.revokeObjectURL(url);
 
+          const nendoSelect = document.getElementById("nendo");
+          document.getElementById("done-nendo").textContent =
+            nendoSelect.options[nendoSelect.selectedIndex].text;
           doneBox.style.display = "block";
           doneBox.scrollIntoView({ behavior: "smooth", block: "start" });
         } else {

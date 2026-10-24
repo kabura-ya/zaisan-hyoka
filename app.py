@@ -11,6 +11,7 @@ import io
 import os
 import tempfile
 import zipfile
+from datetime import date
 from pathlib import Path
 
 from flask import Flask, jsonify, render_template, request, send_file
@@ -24,15 +25,29 @@ app.secret_key = os.environ.get("SECRET_KEY", "zaisan-hyoka-dev")  # 本番はSE
 MAX_ROWS = 30
 
 
+def nendo_options(today: date | None = None) -> list[tuple[str, str]]:
+    """選択できる年分を、新しい順に（コード, 表示名）で返す。
+
+    相続税路線価は毎年7月に公表されるため、7月以降はその年分を最新とし、
+    6月までは前年分を最新とする。最新から4年分を選択肢にする。
+    """
+    today = today or date.today()
+    latest = today.year if today.month >= 7 else today.year - 1
+    return [(f"r{y - 2018:02d}", f"令和{y - 2018}年分") for y in range(latest, latest - 4, -1)]
+
+
 @app.route("/", methods=["GET"])
 def index():
-    return render_template("index.html", max_rows=MAX_ROWS)
+    return render_template("index.html", max_rows=MAX_ROWS, nendo_options=nendo_options())
 
 
 @app.route("/run", methods=["POST"])
 def run():
     file = request.files.get("csv_file")
-    nendo = request.form.get("nendo", "").strip() or "r07"
+    nendo = request.form.get("nendo", "").strip()
+
+    if nendo not in {code for code, _ in nendo_options()}:
+        return jsonify(error="年分を選択してください。"), 400
 
     if not file or file.filename == "":
         return jsonify(error="CSVファイルを選択してください。"), 400
@@ -65,7 +80,7 @@ def run():
         output_dir = work_path / "output"
 
         try:
-            run_pipeline(str(csv_path), nendo, str(output_dir))
+            run_pipeline(str(csv_path), nendo, str(output_dir), force_nendo=True)
         except Exception as e:
             return jsonify(error=f"処理中にエラーが発生しました: {e}"), 500
 
